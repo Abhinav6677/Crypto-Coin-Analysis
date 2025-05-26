@@ -36,10 +36,10 @@ plt.savefig("buy_vs_sell_pnl.png", dpi=300)
 plt.show()
 
 
-# 2. Flag wins vs losses
+
 df['win'] = df['Closed PnL'] > 0
 
-# 3. Compute counts
+
 counts = (
     df.groupby('Side')['win']
       .value_counts()
@@ -47,7 +47,7 @@ counts = (
       .rename(columns={True: 'Profits', False: 'Losses'})
 )
 
-# 4. Plot
+
 ax = counts.plot(
     kind='bar',
     figsize=(8, 6),
@@ -55,7 +55,7 @@ ax = counts.plot(
     width=0.7
 )
 
-# 5. Beautify
+
 ax.set_title("Number of Profits vs. Losses by Trade Side", fontsize=14, fontweight='bold')
 ax.set_xlabel("Trade Side", fontsize=12)
 ax.set_ylabel("Count of Trades", fontsize=12)
@@ -70,7 +70,6 @@ for p in ax.patches:
 plt.xticks(rotation=0)
 plt.tight_layout()
 
-# 6. Show or save
 plt.savefig("profits_losses_by_side.png", dpi=300)
 plt.show()
 
@@ -84,7 +83,6 @@ side_metrics = df.groupby('Side').agg(
 ).reset_index()
 print("\n=== Performance by Side ===\n", side_metrics)
 
-# Bar: mean PnL by side
 plt.figure()
 plt.bar(side_metrics['Side'], side_metrics['mean_pnl'])
 plt.title("Average Closed PnL by Side")
@@ -93,7 +91,6 @@ plt.xlabel("Side")
 plt.tight_layout()
 plt.savefig("chart_side_mean_pnl.png")
 
-# Bar: win rate by side
 plt.figure()
 plt.bar(side_metrics['Side'], side_metrics['win_rate'])
 plt.title("Win Rate by Side")
@@ -103,7 +100,6 @@ plt.tight_layout()
 plt.savefig("chart_side_win_rate.png")
 
 
-# 3. Timestamp-based strategy (hour of day)
 df['Hour'] = df['Timestamp'].dt.hour
 hour_metrics = df.groupby('Hour').agg(mean_pnl=('Closed PnL','mean')).reset_index()
 print("\n=== Mean PnL by Hour ===\n", hour_metrics)
@@ -117,7 +113,6 @@ plt.tight_layout()
 plt.savefig("chart_hourly_pnl.png")
 
 
-# 4. Coin selection: top 10 by trade count
 coin_metrics = df.groupby('Coin').agg(
     mean_pnl   = ('Closed PnL','mean'),
     win_rate   = ('win','mean'),
@@ -136,7 +131,6 @@ plt.tight_layout()
 plt.savefig("chart_top_coins_pnl.png")
 
 
-# 5. Strategy based on Closed PnL: cumulative curve
 df_sorted = df.sort_values('Timestamp')
 df_sorted['cumulative_pnl'] = df_sorted['Closed PnL'].cumsum()
 plt.figure()
@@ -155,24 +149,19 @@ plt.savefig("chart_cumulative_pnl.png")
 df['Timestamp'] = pd.to_datetime(df['Timestamp IST'], format="%d-%m-%Y %H:%M")
 df['Hour'] = df['Timestamp'].dt.hour
 
-# 2) Compute total Closed PnL per trader
 profit_by_acct = df.groupby('Account')['Closed PnL'].sum()
 
-# 3) Identify Top 5 (highest total profit) and Bottom 5 (lowest total profit)
 top5_accts    = profit_by_acct.nlargest(5).index
 bottom5_accts = profit_by_acct.nsmallest(5).index
 
-# 4) Build average-hourly Closed PnL series for each group
 top5_hourly    = df[df['Account'].isin(top5_accts)].groupby('Hour')['Closed PnL'].mean()
 bottom5_hourly = df[df['Account'].isin(bottom5_accts)].groupby('Hour')['Closed PnL'].mean()
 
-# 5) Plotting
 plt.figure(figsize=(10,6))
 plt.plot(top5_hourly.index,    top5_hourly.values,    color='green', label='Top 5 by Profit',   linewidth=2)
 plt.plot(bottom5_hourly.index, bottom5_hourly.values, color='red',   label='Bottom 5 by Profit', linewidth=2)
 plt.axhline(0, color='black', linestyle='--', linewidth=1)
 
-# 6) Annotate
 plt.title("Avg. Closed PnL by Hour: Top 5 vs Bottom 5 Traders (by Total Profit)", 
           fontsize=14, fontweight='bold')
 plt.xlabel("Hour of Day (IST, 0–23)", fontsize=12)
@@ -182,7 +171,6 @@ plt.legend(loc="upper right", fontsize=12)
 plt.grid(True, linestyle='--', alpha=0.6)
 plt.tight_layout()
 
-# 7) Save or show
 plt.savefig("top5_vs_bottom5_by_profit.png", dpi=300)
 plt.show()
 
@@ -226,7 +214,6 @@ sns.regplot(x="value", y="Closed PnL", data=merged_df,
             scatter=False, lowess=True, color="crimson", 
             line_kws={"lw":2, "alpha":0.8})
 
-# 3. Annotate
 plt.title("Trade PnL vs. Fear/Greed Index (0–100)", fontsize=14, fontweight="bold")
 plt.xlabel("Fear/Greed Index Value", fontsize=12)
 plt.ylabel("Closed PnL (USD)", fontsize=12)
